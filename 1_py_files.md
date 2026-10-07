@@ -9,13 +9,13 @@ Try running a script by opening `script.py` in the editor and clicking the trian
 You can also execute python script from the CLI (either from the terminal in VS code or any terminal). Make sure you are in the correct directory.
 
 ```
-conda activate mude-base
+conda activate mude-base-2026
 ```
 
 This makes sure you run python from the correct conda environment. After that you can execute files with:
 
 ```
-python script.py
+python main.py
 ```
 
 Note that if you get stuck in the Python interpreter in your CLI, you can type `exit()` to get back to the native CLI prompt.
@@ -28,8 +28,8 @@ import numpy as np
 
 def nerdy_computation(x):
     """Returns the sum of the squares of the first x natural numbers using numpy."""
-    # YOUR CODE HERE
-    return # YOUR CODE HERE
+    y = np.sum(x**2)
+    return y
 
 print("Hello MUDE! Let's compute something nerdy:")
 result = nerdy_computation(10)

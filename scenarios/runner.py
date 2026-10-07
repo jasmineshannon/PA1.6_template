@@ -12,9 +12,13 @@ from simulations.room_model import step_room
 from simulations.environment import Environment
 from plotting.plots import plot_timeseries, plot_error, plot_duty, plot_predictive, plot_heater
 
-def run_scenario(scenario_path: str):
+def run_scenario(
+    scenario_path: str,
+    seed: Optional[int] = None,
+    save_outputs: bool = True,
+) -> Dict[str, List[float]]:
     scenario = load_config(scenario_path)
-    rng = RNG(scenario.sim.seed)
+    rng = RNG(scenario.sim.seed if seed is None else seed)
 
     env = Environment(
         base=scenario.env.base,
@@ -96,28 +100,29 @@ def run_scenario(scenario_path: str):
         T = step_room(T, heater, T_out, scenario.model.R, scenario.model.C, scenario.model.P,
                       dt, scenario.model.process_sigma, rng)
 
-    # Write CSV
-    ts = time.strftime("%Y%m%d-%H%M%S")
-    base = os.path.splitext(os.path.basename(scenario_path))[0]
-    log_dir = os.path.join("outputs","logs")
-    fig_dir = os.path.join("outputs","figures")
-    os.makedirs(log_dir, exist_ok=True)
-    os.makedirs(fig_dir, exist_ok=True)
-    csv_path = os.path.join(log_dir, f"{base}-{ts}.csv")
-    with open(csv_path, "w") as f:
-        header = ",".join(log.keys()) + "\n"
-        f.write(header)
-        for i in range(len(log["t"])):
-            row = ",".join(str(log[k][i]) for k in log.keys()) + "\n"
-            f.write(row)
+    if save_outputs:
+        ts = time.strftime("%Y%m%d-%H%M%S")
+        base = os.path.splitext(os.path.basename(scenario_path))[0]
+        log_dir = os.path.join("outputs", "logs")
+        fig_dir = os.path.join("outputs", "figures")
+        os.makedirs(log_dir, exist_ok=True)
+        os.makedirs(fig_dir, exist_ok=True)
+        csv_path = os.path.join(log_dir, f"{base}-{ts}.csv")
+        with open(csv_path, "w") as f:
+            header = ",".join(log.keys()) + "\n"
+            f.write(header)
+            for i in range(len(log["t"])):
+                row = ",".join(str(log[k][i]) for k in log.keys()) + "\n"
+                f.write(row)
 
-    # Plots
-    plot_timeseries(log, os.path.join(fig_dir, f"{base}-temps-{ts}.png"))
-    plot_heater(log, os.path.join(fig_dir, f"{base}-heater-{ts}.png"))
-    plot_error(log, os.path.join(fig_dir, f"{base}-error-{ts}.png"))
-    plot_duty(log, os.path.join(fig_dir, f"{base}-duty-{ts}.png"))
-    if use_predictive:
-        plot_predictive(log, os.path.join(fig_dir, f"{base}-predictive-{ts}.png"))
+        plot_timeseries(log, os.path.join(fig_dir, f"{base}-temps-{ts}.png"))
+        plot_heater(log, os.path.join(fig_dir, f"{base}-heater-{ts}.png"))
+        plot_error(log, os.path.join(fig_dir, f"{base}-error-{ts}.png"))
+        plot_duty(log, os.path.join(fig_dir, f"{base}-duty-{ts}.png"))
+        if use_predictive:
+            plot_predictive(log, os.path.join(fig_dir, f"{base}-predictive-{ts}.png"))
 
-    print(f"Wrote log to {csv_path}")
-    print(f"Figures saved to {fig_dir}")
+        print(f"Wrote log to {csv_path}")
+        print(f"Figures saved to {fig_dir}")
+
+    return log
